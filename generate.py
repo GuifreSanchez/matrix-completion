@@ -1,9 +1,10 @@
 import numpy as np
 import classes as cl
-import algorithms as algs
-from algorithms import computeConjugateDirection, computeRiemannianGradient, computeRetraction, computeInitialGuessLineSearch, ArmijoBackTracking
+import subroutines as algs
+from subroutines import computeConjugateDirection, computeRiemannianGradient, computeRetraction, computeInitialGuessLineSearch, ArmijoBackTracking
 import operations as ops
 from math import sqrt
+from time import time
 
 # Returns random n x n matrix of rank k in np array form
 def genRandomMatrixFixedRank(n, k):
@@ -85,8 +86,10 @@ def relativeResidual(X_Omega, A_Omega):
         return False
     return ops.normCSRMatrix(ops.substractCSR(X_Omega, A_Omega)) / ops.normCSRMatrix(A_Omega)
 
-def LRGeomCG(n, k, Omega, A, X1, max_iterations = 100, tol = 1e-12):
-    X_current = X1
+def LRGeomCG(n, k, Omega, A, X, max_iterations = 100, tol = 1e-12, prints = False): 
+    t0 = time()   
+    t1 = t0
+    X_current = X
     A_Omega = ops.getProjection(A, Omega)
 
     # Set iter data for i - 1 for the first iteration
@@ -100,9 +103,10 @@ def LRGeomCG(n, k, Omega, A, X1, max_iterations = 100, tol = 1e-12):
     A_Omega_norm = ops.normCSRMatrix(A_Omega)
 
     for i in range(0,max_iterations):
-        print("\n")
-        print("ITERATION ", i)
-        print("=========================")
+        if (prints):
+            print("\n")
+            print("ITERATION ", i)
+            print("=========================")
         # Compute gradient
         grad_current = computeRiemannianGradient(X_current, R_sparse_current)
 
@@ -115,10 +119,11 @@ def LRGeomCG(n, k, Omega, A, X1, max_iterations = 100, tol = 1e-12):
 
         # Stopping criteria using relative residuals
         relRes = relativeResidual(X_Omega_current, A_Omega)
-        print("Relative residual, (rel_res / tol): ", relRes, relRes / tol)
+        if (prints): print("Relative residual, (rel_res / tol): ", relRes, relRes / tol)
         if relRes <= tol:
-            print("Relative residual / tol <= 1: ", relRes / tol)
-            return True
+            if (prints): print("Relative residual / tol <= 1: ", relRes / tol)
+            t1 = time()
+            break
 
         # # Stopping criteria Mark
         # grad_current_norm = grad_current.getNorm() 
@@ -136,11 +141,11 @@ def LRGeomCG(n, k, Omega, A, X1, max_iterations = 100, tol = 1e-12):
             grad_prev = grad_current
 
         dir_current = computeConjugateDirection(X_prev, X_current, grad_prev, grad_current, dir_prev)
-        print("CG direction norm: ", dir_current.getNorm())
+        if (prints): print("CG direction norm: ", dir_current.getNorm())
 
         # Compute initial guess line search
         t_ast = computeInitialGuessLineSearch(X_current,Omega, dir_current, R_sparse_current)
-        print ("Initial guess line search: ", t_ast)
+        if (prints): print ("Initial guess line search: ", t_ast)
         
 
         # Compute new iterate using Armijo backtracking
@@ -158,6 +163,30 @@ def LRGeomCG(n, k, Omega, A, X1, max_iterations = 100, tol = 1e-12):
         X_Omega_current = X_retraction_Omega
         R_sparse_current = R_sparse_retraction
         error_current = error_retraction
+    
+
+    time_elapsed = t1 - t0
+    total_iterations = i
+    return time_elapsed, total_iterations
+
+def LRGeomCGNSamples(n, k, samples = 10, max_iterations = 100, tol = 1e-12, prints = False):
+    v_Omega = []
+    v_X_init = []
+    v_A = []
+    v_time_elapsed = []
+    v_iterations = []
+    for i in range(samples):
+        v_Omega.append(genRandomOmega(n,k))
+        v_X_init.append(genInitialGuess(n,k))
+        v_A.append(genRandomMatrixFixedRank(n,k))
+        time_elapsed, iterations = LRGeomCG(n, k, v_Omega[i], v_A[i], v_X_init[i])
+        v_time_elapsed.append(time_elapsed)
+        v_iterations.append(iterations)
+        if (prints): print("Sample ", i, " (time, iters): ", time_elapsed, iterations)
+
+    return np.array(v_time_elapsed), np.array(v_iterations)
+    
+    
         
 
 

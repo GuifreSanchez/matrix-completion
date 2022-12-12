@@ -104,7 +104,6 @@ def ArmijoBackTracking(X, error_current, A_Omega, Omega, max_t, dir, grad, c = 0
     max_dir = max_t * dir
     armijo_right_factor = c * max_t * ops.innerProduct(grad, dir)
     for m in range(max_iters):
-        print("Armijo iterates: ", m)
         X_retraction =computeRetraction(X, tau_m * max_dir)
         X_retraction_Omega = ops.projectionFromSVD(X_retraction, Omega)
         R_sparse_retraction = ops.substractCSR(X_retraction_Omega, A_Omega)
