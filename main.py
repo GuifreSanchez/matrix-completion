@@ -40,11 +40,12 @@ k = 40
 
 A = gen.genRandomMatrixFixedRank(n, k)
 X0 = gen.genInitialGuess(n,k)
-X1 = gen.generateInitialGuess2(n,k)
+X1 = gen.genInitialGuess2(n,k)
 Omega = gen.genRandomOmega(n, k)
 print("Length Omega: ", len(Omega))
-
-gen.LRGeomCG(n,k,Omega, A, X1)
+print(X0.U.shape, X0.Sigma.shape, X0.V.shape)
+print(X1.U.shape, X1.Sigma.shape, X1.V.shape)
+gen.LRGeomCG(n,k,Omega, A, X0)
 
 #gen.computeInitialGuessLineSearch(1,2,3,4)
 #gen.computeRetraction(1,2)
