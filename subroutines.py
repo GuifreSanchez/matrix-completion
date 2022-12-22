@@ -113,8 +113,10 @@ def ArmijoBackTracking(X, error_current, A_Omega, Omega, max_t, dir, grad, c = 0
             return [m, armijo_value, X_retraction, X_retraction_Omega, R_sparse_retraction, error_retraction]
         tau_m *= tau
     
-    print("Error: Armijo condition not satisfied")
-    return False
+    # print("Error: Armijo condition not satisfied")
+    # return False
+
+    return [m, armijo_value, X_retraction, X_retraction_Omega, R_sparse_retraction, error_retraction]
 
 # ALGORITHM 6
 # Compute retraction by metric projection
